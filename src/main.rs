@@ -11,6 +11,8 @@ pub struct Point {
     pub y: i32,
 }
 
+const CELL_SIZE: f32 = 20.0;
+
 fn main() {
     nannou::app(model)
         .event(event)
@@ -20,9 +22,9 @@ fn main() {
 
 fn model(_app: &App) -> Model { 
     Model {
-        lines: 20,
-        columns: 20,
-        head: Point {x:9, y:11},
+        lines: 35,
+        columns: 50,
+        head: Point {x:20, y:9},
     }
 }
 
@@ -30,30 +32,42 @@ fn event(_app: &App, _model: &mut Model, _event: Event) {
 }
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
-    let cell_side = 20.0;
     let draw = _app.draw();
+    let wr = _app.window_rect();
+
     draw.background().color(PLUM);
-    let mut x = 0.0;
-    for col in 0.._model.columns {
-        let mut y = 0.0;
-        for line in 0.._model.lines {
+
+    let mut cell = Rect::from_w_h(CELL_SIZE, CELL_SIZE).top_left_of(wr);
+    let mut head = cell;
+    for line in 0.._model.lines {
+        for col in 0.._model.columns {
             draw.rect()
                 .no_fill()
                 .stroke_color(GRAY)
                 .stroke_weight(1.0)
-                .w(cell_side)
-                .h(cell_side)
-                .x_y(x,y);
+                .wh(cell.wh())
+                .xy(cell.xy());
+
+            // debug coordiantes
+            draw.text(&format!("{},{}", line, col))
+                .color(BLACK)
+                .font_size(8)
+                .xy(cell.xy());
+
             if _model.head.x == col && _model.head.y == line {
                 draw.rect()
                 .color(BLACK)
-                .w(cell_side - 4.0)
-                .h(cell_side - 4.0)
-                    .x_y(x + 1.0, y + 1.0);
-            } 
-            y += cell_side;
+                .w(CELL_SIZE - 4.0)
+                .h(CELL_SIZE - 4.0)
+                .xy(cell.xy());
+            }
+            if col == _model.columns - 1 {
+               cell = head.below(head);
+            } else {
+               cell = cell.right_of(cell);
+            }
         }
-        x += cell_side;
+        head = cell; 
     }
     draw.to_frame(_app, &_frame).unwrap();
 }
