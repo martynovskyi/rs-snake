@@ -4,6 +4,7 @@ struct Model {
     pub lines: i32,
     pub columns: i32,
     pub head: Point,
+    pub debug: bool,
 }
 
 pub struct Point {
@@ -16,20 +17,29 @@ const CELL_SIZE: f32 = 20.0;
 fn main() {
     nannou::app(model)
         .event(event)
-        .simple_window(view)
         .run();
 }
 
 fn model(_app: &App) -> Model { 
+    _app.new_window()
+        .size(1000, 1000)
+        .title("Snake")
+        .view(view)
+        .key_pressed(key_pressed)
+        .build()
+        .unwrap();
+
     Model {
-        lines: 35,
+        lines: 50,
         columns: 50,
         head: Point {x:20, y:9},
+        debug: false,
     }
 }
 
-fn event(_app: &App, _model: &mut Model, _event: Event) {
+fn event(_app: &App, _model: &mut Model, _e: Event) {
 }
+
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
     let draw = _app.draw();
@@ -47,12 +57,13 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
                 .stroke_weight(1.0)
                 .wh(cell.wh())
                 .xy(cell.xy());
-
-            // debug coordiantes
-            draw.text(&format!("{},{}", line, col))
-                .color(BLACK)
-                .font_size(8)
-                .xy(cell.xy());
+            if _model.debug {
+                // debug coordiantes
+                draw.text(&format!("{},{}", line, col))
+                    .color(BLACK)
+                    .font_size(8)
+                    .xy(cell.xy());
+            }
 
             if _model.head.x == col && _model.head.y == line {
                 draw.rect()
@@ -70,4 +81,27 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
         head = cell; 
     }
     draw.to_frame(_app, &_frame).unwrap();
+}
+
+
+fn key_pressed(app: &App, model: &mut Model, key: Key) {
+    match key {
+        Key::D => {
+            model.debug = !model.debug;
+        }
+        Key::Up => {
+            model.head.y -= 1;
+        }
+        Key::Down => {
+            model.head.y += 1;
+        }
+        Key::Right => {
+            model.head.x += 1;
+        }
+        Key::Left => {
+            model.head.x -= 1;
+        }
+        _other_key => {}
+    }
+
 }
