@@ -1,12 +1,13 @@
 use nannou::prelude::*;
 
 mod snake_struct;
+use snake_struct::Snake;
 use snake_struct::Point;
 
 struct Model {
     pub lines: i32,
     pub columns: i32,
-    pub head: Point,
+    pub snake: Snake,
     pub debug: bool,
 }
 
@@ -21,7 +22,7 @@ fn main() {
 
 fn model(_app: &App) -> Model { 
     _app.new_window()
-        .size(1080, 1080)
+        .size(1000, 1080)
         .title("Snake")
         .view(view)
         .key_pressed(key_pressed)
@@ -31,24 +32,56 @@ fn model(_app: &App) -> Model {
     Model {
         lines: 50,
         columns: 50,
-        head: Point {x:20, y:9},
+        snake: Snake {
+            ft: _app.time,
+            direction: 'u',
+            head: Point {
+                x: 24,
+                y: 24,
+            },
+        },
         debug: false,
     }
 }
 
 fn event(_app: &App, _model: &mut Model, _e: Event) {
+   // println!("Event {:?}", _e);
+    
+    let snake = &mut _model.snake;
+    if (_app.time - snake.ft) > 1.0 {
+    snake.ft = _app.time;
+    match snake.direction {
+            'u' => { snake.head.y -= 1; 
+            }
+            'd' => { snake.head.y += 1; 
+            }
+            'l' => { snake.head.x -= 1; 
+            }
+            'r' => { snake.head.x += 1; 
+            }
+            _ => println!("Not possible")
+    }
+
+
+    println!("Move {:?}", snake);
+    }
 }
 
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
     let draw = _app.draw();
     let wr = _app.window_rect();
-    let snake = &_model.head;
+    let snake = &_model.snake;
     draw.background().color(PLUM);
 
-    if snake.x < 0 || snake.x >= _model.columns || snake.y < 0 || snake.y >= _model.lines {
+    if snake.head.x < 0
+    || snake.head.x >= _model.columns 
+    || snake.head.y < 0
+    || snake.head.y >= _model.lines {
         println!("GAME OVER");
     }
+
+
 
     let mut cell = Rect::from_w_h(CELL_SIZE, CELL_SIZE).top_left_of(wr);
     let mut head = cell;
@@ -63,7 +96,7 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
                     .xy(cell.xy());
             }
 
-            if snake.x == col && snake.y == line {
+            if snake.head.x == col && snake.head.y == line {
                 draw_snake_el(&draw, &cell);
             }
         
@@ -102,18 +135,22 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
             model.debug = !model.debug;
         }
         Key::Up => {
-            model.head.y -= 1;
+            model.snake.head.y -= 1;
+            model.snake.direction = 'u';
         }
         Key::Down => {
-            model.head.y += 1;
+            model.snake.head.y += 1;
+            model.snake.direction = 'd';
         }
         Key::Right => {
-            model.head.x += 1;
+            model.snake.head.x += 1;
+            model.snake.direction = 'r';
         }
         Key::Left => {
-            model.head.x -= 1;
+            model.snake.head.x -= 1;
+            model.snake.direction = 'l';
         }
         _other_key => {}
     }
-    println!("{:?} -> {:?}", key, model.head); 
+    println!("{}: {:?} -> {:?}", app.time, key, model.snake); 
 }
