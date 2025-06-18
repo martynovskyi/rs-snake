@@ -48,7 +48,7 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
    // println!("Event {:?}", _e);
     
     let snake = &mut _model.snake;
-    if (_app.time - snake.ft) > 1.0 {
+    if (_app.time - snake.ft) > 0.8 {
     snake.ft = _app.time;
     match snake.direction {
             'u' => { snake.head.y -= 1; 
@@ -135,21 +135,42 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
             model.debug = !model.debug;
         }
         Key::Up => {
-            model.snake.head.y -= 1;
-            model.snake.direction = 'u';
+            if model.snake.direction == 'u' {
+                model.snake.head.y -= 1;
+                model.snake.ft = app.time;
+            }
+            if model.snake.direction != 'd' {
+                model.snake.direction = 'u';
+            }
         }
-        Key::Down => {
-            model.snake.head.y += 1;
-            model.snake.direction = 'd';
+        Key::Down => { 
+            if model.snake.direction == 'd' {
+                model.snake.head.y += 1;
+                model.snake.ft = app.time;
+            }
+            if model.snake.direction != 'u' {
+                model.snake.direction = 'd';
+            }
         }
         Key::Right => {
-            model.snake.head.x += 1;
-            model.snake.direction = 'r';
+            if model.snake.direction == 'r' {
+                model.snake.head.x += 1;
+                model.snake.ft = app.time;
+            }
+            if model.snake.direction != 'l' {
+                model.snake.direction = 'r';
+            }
         }
         Key::Left => {
-            model.snake.head.x -= 1;
-            model.snake.direction = 'l';
+            if model.snake.direction == 'l' {
+                model.snake.head.x -= 1;
+                model.snake.ft = app.time;
+            }
+            if model.snake.direction != 'r' {
+                model.snake.direction = 'l';
+            }
         }
+
         _other_key => {}
     }
     println!("{}: {:?} -> {:?}", app.time, key, model.snake); 
