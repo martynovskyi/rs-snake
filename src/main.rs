@@ -8,7 +8,7 @@ struct Model {
     pub lines: i32,
     pub columns: i32,
     pub step_delay: f32,
-    pub board: [[]],: 
+    pub board: [[]], 
     pub snake: Snake,
     pub debug: bool,
 }
