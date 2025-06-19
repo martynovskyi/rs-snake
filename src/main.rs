@@ -8,7 +8,7 @@ struct Model {
     pub lines: i32,
     pub columns: i32,
     pub step_delay: f32,
-    pub board: [[]], 
+    pub board: [[u32; 50]; 50], 
     pub snake: Snake,
     pub debug: bool,
 }
@@ -31,7 +31,11 @@ fn model(_app: &App) -> Model {
         .build()
         .unwrap();
 
-    let board = [[0u32; 50]; 50];
+    let mut board = [[0u32; 50]; 50];
+
+    board[8][8] = 5;
+
+
     Model {
         lines: 50,
         columns: 50,
@@ -75,7 +79,9 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
     let draw = _app.draw();
     let wr = _app.window_rect();
     let snake = &_model.snake;
+    let board = &_model.board;
     draw.background().color(PLUM);
+
 
     if snake.head.x < 0
     || snake.head.x >= _model.columns 
@@ -102,6 +108,14 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
             if snake.head.x == col && snake.head.y == line {
                 draw_snake_el(&draw, &cell);
             }
+
+            let x = usize::from_i32(col).unwrap();
+            let y = usize::from_i32(line).unwrap();
+
+            if board[x][y] == 5 {
+                draw_food(&draw, &cell);
+            }
+
         
             if col == _model.columns - 1 {
                cell = head.below(head);
@@ -120,6 +134,15 @@ fn draw_cell(draw: &Draw, cell: &Rect) {
         .stroke_color(GRAY)
         .stroke_weight(1.0)
         .wh(cell.wh())
+        .xy(cell.xy());
+}
+
+fn draw_food(draw: &Draw, cell: &Rect) {
+    draw.rect()
+        .color(RED)
+        .h(CELL_SIZE - 10.0)
+        .w(CELL_SIZE - 10.0)
+        .rotate(45.0)
         .xy(cell.xy());
 }
 
