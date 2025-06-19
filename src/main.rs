@@ -8,6 +8,7 @@ struct Model {
     pub lines: i32,
     pub columns: i32,
     pub step_delay: f32,
+    pub board: [[]],: 
     pub snake: Snake,
     pub debug: bool,
 }
@@ -30,10 +31,12 @@ fn model(_app: &App) -> Model {
         .build()
         .unwrap();
 
+    let board = [[0u32; 50]; 50];
     Model {
         lines: 50,
         columns: 50,
         step_delay: 0.8,
+        board: board,
         snake: Snake {
             ft: _app.time,
             direction: 'u',
