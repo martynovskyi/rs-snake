@@ -7,6 +7,7 @@ use snake_struct::Point;
 struct Model {
     pub lines: i32,
     pub columns: i32,
+    pub step_delay: f32,
     pub snake: Snake,
     pub debug: bool,
 }
@@ -32,6 +33,7 @@ fn model(_app: &App) -> Model {
     Model {
         lines: 50,
         columns: 50,
+        step_delay: 0.8,
         snake: Snake {
             ft: _app.time,
             direction: 'u',
@@ -45,11 +47,9 @@ fn model(_app: &App) -> Model {
 }
 
 fn event(_app: &App, _model: &mut Model, _e: Event) {
-   // println!("Event {:?}", _e);
-    
     let snake = &mut _model.snake;
-    if (_app.time - snake.ft) > 0.8 {
-    snake.ft = _app.time;
+   
+    if (_app.time - snake.ft) > _model.step_delay {
     match snake.direction {
             'u' => { snake.head.y -= 1; 
             }
@@ -62,8 +62,8 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
             _ => println!("Not possible")
     }
 
-
-    println!("Move {:?}", snake);
+    snake.ft = _app.time;
+    // println!("Move {:?}", snake);
     }
 }
 
@@ -89,7 +89,7 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
         for col in 0.._model.columns {
             draw_cell(&draw, &cell);
             if _model.debug {
-             // debug coordiantes
+                // debug coordiantes
                 draw.text(&format!("{},{}", line, col))
                     .color(BLACK)
                     .font_size(8)
