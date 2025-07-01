@@ -4,9 +4,13 @@ mod snake_struct;
 use snake_struct::Snake;
 use snake_struct::Point;
 
+mod draw;
+use draw::draw_cell;
+use draw::CELL_SIZE;
+
 struct Model {
-    pub lines: i32,
-    pub columns: i32,
+    pub lines: u32,
+    pub columns: u32,
     pub step_delay: f32,
     pub board: [[u32; 50]; 50], 
     pub snake: Snake,
@@ -14,7 +18,6 @@ struct Model {
 }
 
 
-const CELL_SIZE: f32 = 20.0;
 
 fn main() {
     nannou::app(model)
@@ -33,9 +36,7 @@ fn model(_app: &App) -> Model {
 
     let mut board = [[0u32; 50]; 50];
 
-    board[8][8] = 5;
-
-
+    place_food(&mut board);
     Model {
         lines: 50,
         columns: 50,
@@ -48,6 +49,11 @@ fn model(_app: &App) -> Model {
                 x: 24,
                 y: 24,
             },
+            tail: Point {
+                x: 24,
+                y: 24,
+            },
+            size: 1,
         },
         debug: false,
     }
@@ -55,25 +61,28 @@ fn model(_app: &App) -> Model {
 
 fn event(_app: &App, _model: &mut Model, _e: Event) {
     let snake = &mut _model.snake;
+    let board = &mut _model.board;
    
     if (_app.time - snake.ft) > _model.step_delay {
-    match snake.direction {
-            'u' => { snake.head.y -= 1; 
-            }
-            'd' => { snake.head.y += 1; 
-            }
-            'l' => { snake.head.x -= 1; 
-            }
-            'r' => { snake.head.x += 1; 
-            }
-            _ => println!("Not possible")
-    }
-
-    snake.ft = _app.time;
-    // println!("Move {:?}", snake);
+        move_snake(snake, board);
+        snake.ft = _app.time;
     }
 }
 
+fn place_food(board: &mut [[u32;50]; 50]){
+    board[8][8] = 5;
+}
+
+fn move_snake(snake: &mut Snake, board: &mut [[u32; 50]; 50]){
+    match snake.direction {
+            'u' => snake.head.y -= 1, 
+            'd' => snake.head.y += 1, 
+            'l' => snake.head.x -= 1,
+            'r' => snake.head.x += 1, 
+            _ => println!("Not possible")
+    }
+    board[snake.head.x as usize][snake.head.y as usize] = 1;
+} 
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
     let draw = _app.draw();
@@ -84,19 +93,19 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
 
 
     if snake.head.x < 0
-    || snake.head.x >= _model.columns 
+    || snake.head.x >= _model.columns as i32 
     || snake.head.y < 0
-    || snake.head.y >= _model.lines {
+    || snake.head.y >= _model.lines as i32 {
         println!("GAME OVER");
     }
-
-
 
     let mut cell = Rect::from_w_h(CELL_SIZE, CELL_SIZE).top_left_of(wr);
     let mut head = cell;
     for line in 0.._model.lines {
         for col in 0.._model.columns {
-            draw_cell(&draw, &cell);
+            let x = usize::from_u32(col).unwrap();
+            let y = usize::from_u32(line).unwrap();
+            draw_cell(&draw, &cell, &board[x][y]);
             if _model.debug {
                 // debug coordiantes
                 draw.text(&format!("{},{}", line, col))
@@ -104,18 +113,6 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
                     .font_size(8)
                     .xy(cell.xy());
             }
-
-            if snake.head.x == col && snake.head.y == line {
-                draw_snake_el(&draw, &cell);
-            }
-
-            let x = usize::from_i32(col).unwrap();
-            let y = usize::from_i32(line).unwrap();
-
-            if board[x][y] == 5 {
-                draw_food(&draw, &cell);
-            }
-
         
             if col == _model.columns - 1 {
                cell = head.below(head);
@@ -128,68 +125,42 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
     draw.to_frame(_app, &_frame).unwrap();
 }
 
-fn draw_cell(draw: &Draw, cell: &Rect) {
-    draw.rect()
-        .no_fill()
-        .stroke_color(GRAY)
-        .stroke_weight(1.0)
-        .wh(cell.wh())
-        .xy(cell.xy());
-}
-
-fn draw_food(draw: &Draw, cell: &Rect) {
-    draw.rect()
-        .color(RED)
-        .h(CELL_SIZE - 10.0)
-        .w(CELL_SIZE - 10.0)
-        .rotate(45.0)
-        .xy(cell.xy());
-}
-
-fn draw_snake_el(draw: &Draw, cell: &Rect){
-    draw.rect()
-        .color(BLACK)
-        .w(CELL_SIZE - 4.0)
-        .h(CELL_SIZE - 4.0)
-        .xy(cell.xy());
-}
-
 
 fn key_pressed(app: &App, model: &mut Model, key: Key) {
     match key {
-        Key::D => {
+        Key::O => {
             model.debug = !model.debug;
         }
-        Key::Up => {
+        Key::Up | Key::W => {
             if model.snake.direction == 'u' {
-                model.snake.head.y -= 1;
+                move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'd' {
                 model.snake.direction = 'u';
             }
         }
-        Key::Down => { 
+        Key::Down | Key::S => { 
             if model.snake.direction == 'd' {
-                model.snake.head.y += 1;
+                move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'u' {
                 model.snake.direction = 'd';
             }
         }
-        Key::Right => {
+        Key::Right | Key::D => {
             if model.snake.direction == 'r' {
-                model.snake.head.x += 1;
+                move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'l' {
                 model.snake.direction = 'r';
             }
         }
-        Key::Left => {
+        Key::Left | Key::A => {
             if model.snake.direction == 'l' {
-                model.snake.head.x -= 1;
+                move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'r' {

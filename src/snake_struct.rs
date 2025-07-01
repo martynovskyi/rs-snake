@@ -10,4 +10,6 @@ pub struct Snake {
     pub ft: f32,
     pub direction: char,
     pub head: Point,
+    pub tail: Point,
+    pub size: u32,
 }
