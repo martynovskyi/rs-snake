@@ -1,8 +1,7 @@
 use nannou::prelude::*;
 
 mod snake_struct;
-use snake_struct::Snake;
-use snake_struct::Point;
+use snake_struct::*;
 
 mod draw;
 use draw::draw_cell;
@@ -12,18 +11,18 @@ struct Model {
     pub lines: u32,
     pub columns: u32,
     pub step_delay: f32,
-    pub board: [[u32; 50]; 50], 
+    pub board: [[BCell; 50]; 50], 
     pub snake: Snake,
     pub debug: bool,
 }
-
-
 
 fn main() {
     nannou::app(model)
         .event(event)
         .run();
 }
+
+
 
 fn model(_app: &App) -> Model { 
     _app.new_window()
@@ -33,10 +32,13 @@ fn model(_app: &App) -> Model {
         .key_pressed(key_pressed)
         .build()
         .unwrap();
-
-    let mut board = [[0u32; 50]; 50];
+    const start_x: usize = 24;
+    const start_y: usize = 24;
+    let mut board = [[BCell::EmptyCell; 50]; 50];
+    board[start_x][start_y] = BCell::Head;
 
     place_food(&mut board);
+
     Model {
         lines: 50,
         columns: 50,
@@ -46,12 +48,15 @@ fn model(_app: &App) -> Model {
             ft: _app.time,
             direction: 'u',
             head: Point {
-                x: 24,
-                y: 24,
+                x: start_x as i32,
+                y: start_y as i32,
             },
-            tail: Point {
-                x: 24,
-                y: 24,
+            tail: Segment {
+                next: Option::None,
+                coord: Point {
+                    x: start_x as i32, 
+                    y: start_y as i32,
+                }
             },
             size: 1,
         },
@@ -69,11 +74,23 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
     }
 }
 
-fn place_food(board: &mut [[u32;50]; 50]){
-    board[8][8] = 5;
+fn place_food(board: &mut [[BCell; 50]; 50]){
+    board[24][8] = BCell::Food;
 }
 
-fn move_snake(snake: &mut Snake, board: &mut [[u32; 50]; 50]){
+fn move_snake(snake: &mut Snake, board: &mut [[BCell; 50]; 50]) {
+    let tail_val: BCell = board[snake.tail.coord.x as usize][snake.tail.coord.y as usize];
+
+    println!("tail val {:?}", tail_val);
+
+    if tail_val == BCell::FBody{
+        board[snake.tail.coord.x as usize][snake.tail.coord.y as usize] = BCell::Body;
+        // append segment
+    } else {
+        println!("clean tail {:?}",snake.tail.coord);
+        board[snake.tail.coord.x as usize][snake.tail.coord.y as usize] = BCell::EmptyCell;
+    }
+
     match snake.direction {
             'u' => snake.head.y -= 1, 
             'd' => snake.head.y += 1, 
@@ -81,7 +98,12 @@ fn move_snake(snake: &mut Snake, board: &mut [[u32; 50]; 50]){
             'r' => snake.head.x += 1, 
             _ => println!("Not possible")
     }
-    board[snake.head.x as usize][snake.head.y as usize] = 1;
+    board[snake.head.x as usize][snake.head.y as usize] = BCell::Head;
+
+    if !snake.tail.next.is_some() {
+        snake.tail.coord = snake.head.clone();
+    } 
+    println!("Snake: {:?}", snake);
 } 
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
