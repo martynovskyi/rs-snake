@@ -12,9 +12,13 @@ pub fn draw_cell(draw: &Draw, cell: &Rect, item: &BCell) {
         .xy(cell.xy());
 
     match item {
-        BCell::Head => draw_snake_el(draw, cell),
+        BCell::Head => draw_snake_head(draw, cell),
+        BCell::FHead => draw_snake_fhead(draw, cell),
+        BCell::Body => draw_snake_body(draw, cell),
+        BCell::FBody => draw_snake_fbody(draw, cell),
+        BCell::Tail => draw_snake_body(draw, cell),
         BCell::Food => draw_food(draw, cell),
-        _ => {}
+        BCell::EmptyCell => {} 
     }
 }
 
@@ -27,10 +31,34 @@ fn draw_food(draw: &Draw, cell: &Rect) {
         .xy(cell.xy());
 }
 
-fn draw_snake_el(draw: &Draw, cell: &Rect) {
+fn draw_snake_head(draw: &Draw, cell: &Rect) {
     draw.rect()
         .color(BLACK)
         .w(CELL_SIZE - 4.0)
         .h(CELL_SIZE - 4.0)
+        .xy(cell.xy());
+}
+
+fn draw_snake_fhead(draw: &Draw, cell: &Rect) {
+    draw.rect()
+        .color(RED)
+        .w(CELL_SIZE - 4.0)
+        .h(CELL_SIZE - 4.0)
+        .xy(cell.xy());
+}
+
+fn draw_snake_body(draw: &Draw, cell: &Rect) {
+    draw.rect()
+        .color(BLACK)
+        .w(CELL_SIZE - 10.0)
+        .h(CELL_SIZE - 10.0)
+        .xy(cell.xy());
+}
+
+fn draw_snake_fbody(draw: &Draw, cell: &Rect) {
+    draw.rect()
+        .color(RED)
+        .w(CELL_SIZE - 10.0)
+        .h(CELL_SIZE - 10.0)
         .xy(cell.xy());
 }

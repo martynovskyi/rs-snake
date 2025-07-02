@@ -79,18 +79,44 @@ fn place_food(board: &mut [[BCell; 50]; 50]){
 }
 
 fn move_snake(snake: &mut Snake, board: &mut [[BCell; 50]; 50]) {
-    let tail_val: BCell = board[snake.tail.coord.x as usize][snake.tail.coord.y as usize];
+    // handle tail move
+    let tail_x = snake.tail.coord.x as usize;
+    let tail_y = snake.tail.coord.y as usize;
+    
+    match board[tail_x][tail_y] {
+        BCell::FBody => {
+            board[tail_x][tail_y] = BCell::Body;
+            // append segment
+        },
+        BCell::FHead => {},
+        _ => {
+            println!("clean tail {:?}",snake.tail.coord);
+            board[tail_x][tail_y] = BCell::EmptyCell;
 
-    println!("tail val {:?}", tail_val);
-
-    if tail_val == BCell::FBody{
-        board[snake.tail.coord.x as usize][snake.tail.coord.y as usize] = BCell::Body;
-        // append segment
-    } else {
-        println!("clean tail {:?}",snake.tail.coord);
-        board[snake.tail.coord.x as usize][snake.tail.coord.y as usize] = BCell::EmptyCell;
+        }
     }
 
+    // handle current head location
+    let mut head_x = snake.head.x as usize;
+    let mut head_y = snake.head.y as usize;
+
+    match board[head_x][head_y] {
+        BCell::FHead => {
+            println!("snake growing");
+            board[head_x][head_y] = BCell::FBody;
+            let prev_tail = snake.tail.clone();
+            snake.tail = Segment {
+                next: Option::Some(Box::new(prev_tail)),
+                coord: Point {
+                    x: tail_x as i32,
+                    y: tail_y as i32,
+                }
+            };
+        },
+        _ => {println!("Current head: {:?}", board[head_x][head_y]); }
+    }
+
+    // move head
     match snake.direction {
             'u' => snake.head.y -= 1, 
             'd' => snake.head.y += 1, 
@@ -98,8 +124,21 @@ fn move_snake(snake: &mut Snake, board: &mut [[BCell; 50]; 50]) {
             'r' => snake.head.x += 1, 
             _ => println!("Not possible")
     }
-    board[snake.head.x as usize][snake.head.y as usize] = BCell::Head;
 
+    // handle new head location
+    head_x = snake.head.x as usize;
+    head_y = snake.head.y as usize;
+
+    match board[head_x][head_y] {
+        BCell::EmptyCell => board[head_x][head_y] = BCell::Head,
+        BCell::Food => { 
+            board[head_x][head_y] = BCell::FHead;
+            snake.size +=1;
+        },
+        _ => {}
+    }
+
+    // fix tail when size is 1
     if !snake.tail.next.is_some() {
         snake.tail.coord = snake.head.clone();
     } 

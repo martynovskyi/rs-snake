@@ -6,6 +6,7 @@ pub enum BCell {
     FHead,
     Body,
     FBody,
+    Tail,
     Food,
 }
 
@@ -24,7 +25,7 @@ pub struct Snake {
     pub size: u32,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Segment {
     pub next: Option<Box<Segment>>,
     pub coord: Point,
