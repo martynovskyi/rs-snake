@@ -1,9 +1,9 @@
 use nannou::prelude::*;
-use crate::snake_struct::BCell;
+use crate::snake_struct::CellType;
 
 pub const CELL_SIZE: f32 = 20.0;
 
-pub fn draw_cell(draw: &Draw, cell: &Rect, item: &BCell) {
+pub fn draw_cell(draw: &Draw, cell: &Rect, item: CellType) {
     draw.rect()
         .no_fill()
         .stroke_color(GRAY)
@@ -12,13 +12,13 @@ pub fn draw_cell(draw: &Draw, cell: &Rect, item: &BCell) {
         .xy(cell.xy());
 
     match item {
-        BCell::Head => draw_snake_head(draw, cell),
-        BCell::FHead => draw_snake_fhead(draw, cell),
-        BCell::Body => draw_snake_body(draw, cell),
-        BCell::FBody => draw_snake_fbody(draw, cell),
-        BCell::Tail => draw_snake_body(draw, cell),
-        BCell::Food => draw_food(draw, cell),
-        BCell::EmptyCell => {} 
+        CellType::Head => draw_snake_head(draw, cell),
+        CellType::FHead => draw_snake_fhead(draw, cell),
+        CellType::Body => draw_snake_body(draw, cell),
+        CellType::FBody => draw_snake_fbody(draw, cell),
+        CellType::Tail => draw_snake_body(draw, cell),
+        CellType::Food => draw_food(draw, cell),
+        CellType::EmptyCell => {} 
     }
 }
 

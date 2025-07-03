@@ -1,6 +1,6 @@
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum BCell {
+pub enum CellType {
     EmptyCell,
     Head,
     FHead,
@@ -20,13 +20,15 @@ pub struct Point {
 pub struct Snake {
     pub ft: f32,
     pub direction: char,
-    pub head: Point,
-    pub tail: Segment,
+    pub head_x: i32, 
+    pub head_y: i32, 
+    pub tail_x: i32, 
+    pub tail_y: i32, 
     pub size: u32,
 }
 
-#[derive(Clone, Debug)]
-pub struct Segment {
-    pub next: Option<Box<Segment>>,
-    pub coord: Point,
+#[derive(Clone, Copy, Debug)]
+pub struct GS {
+    pub cell: CellType,
+    pub direction: char,
 }

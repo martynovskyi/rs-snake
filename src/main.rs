@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use nannou::prelude::*;
 
 mod snake_struct;
@@ -11,7 +12,7 @@ struct Model {
     pub lines: u32,
     pub columns: u32,
     pub step_delay: f32,
-    pub board: [[BCell; 50]; 50], 
+    pub board: [[Option<GS>; 50]; 50], 
     pub snake: Snake,
     pub debug: bool,
 }
@@ -21,8 +22,6 @@ fn main() {
         .event(event)
         .run();
 }
-
-
 
 fn model(_app: &App) -> Model { 
     _app.new_window()
@@ -34,8 +33,11 @@ fn model(_app: &App) -> Model {
         .unwrap();
     const start_x: usize = 24;
     const start_y: usize = 24;
-    let mut board = [[BCell::EmptyCell; 50]; 50];
-    board[start_x][start_y] = BCell::Head;
+    let mut board = [[Option::<GS>::None; 50]; 50];
+    board[start_x][start_y] = Option::Some( GS {
+        cell: CellType::Head,
+        direction: 'u'
+    });
 
     place_food(&mut board);
 
@@ -47,17 +49,10 @@ fn model(_app: &App) -> Model {
         snake: Snake {
             ft: _app.time,
             direction: 'u',
-            head: Point {
-                x: start_x as i32,
-                y: start_y as i32,
-            },
-            tail: Segment {
-                next: Option::None,
-                coord: Point {
-                    x: start_x as i32, 
-                    y: start_y as i32,
-                }
-            },
+            head_x: start_x as i32,
+            head_y: start_y as i32,
+            tail_x: start_x as i32,
+            tail_y: start_y as i32,
             size: 1,
         },
         debug: false,
@@ -74,73 +69,95 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
     }
 }
 
-fn place_food(board: &mut [[BCell; 50]; 50]){
-    board[24][8] = BCell::Food;
+fn place_food(board: &mut [[Option<GS>; 50]; 50]){
+    board[24][8] = Option::Some(GS {
+        cell: CellType::Food,
+        direction: '0',
+    });
 }
 
-fn move_snake(snake: &mut Snake, board: &mut [[BCell; 50]; 50]) {
+fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     // handle tail move
-    let tail_x = snake.tail.coord.x as usize;
-    let tail_y = snake.tail.coord.y as usize;
-    
-    match board[tail_x][tail_y] {
-        BCell::FBody => {
-            board[tail_x][tail_y] = BCell::Body;
+    let tail_x = snake.tail_x as usize;
+    let tail_y = snake.tail_y as usize;
+    let tail = board[tail_x][tail_y].unwrap();
+
+    match tail.cell {
+        CellType::FBody => {
+            board[tail_x][tail_y] = Option::Some( GS {
+                cell: CellType::Body,
+                direction: tail.direction,
+            });
             // append segment
         },
-        BCell::FHead => {},
+        CellType::FHead => {},
         _ => {
-            println!("clean tail {:?}",snake.tail.coord);
-            board[tail_x][tail_y] = BCell::EmptyCell;
+            println!("clean tail");
+            board[tail_x][tail_y] = Option::None;
 
         }
     }
 
     // handle current head location
-    let mut head_x = snake.head.x as usize;
-    let mut head_y = snake.head.y as usize;
-
-    match board[head_x][head_y] {
-        BCell::FHead => {
-            println!("snake growing");
-            board[head_x][head_y] = BCell::FBody;
-            let prev_tail = snake.tail.clone();
-            snake.tail = Segment {
-                next: Option::Some(Box::new(prev_tail)),
-                coord: Point {
-                    x: tail_x as i32,
-                    y: tail_y as i32,
-                }
-            };
-        },
-        _ => {println!("Current head: {:?}", board[head_x][head_y]); }
+    
+    let mut head_x = snake.head_x as usize;
+    let mut head_y = snake.head_y as usize;
+   
+    
+    if snake.size < 1 {
+        println!("Current head: {}:{}", head_x, head_y);
+        let head = board[head_x][head_y].unwrap();
+        match head.cell {
+            CellType::FHead => {
+                println!("snake growing");
+                board[head_x][head_y] = Option::Some(GS {
+                    cell: CellType::FBody,
+                    direction: head.direction,
+                });
+            },
+            _ => {println!("Current head: {:?}", board[head_x][head_y]); }
+        }
     }
 
     // move head
     match snake.direction {
-            'u' => snake.head.y -= 1, 
-            'd' => snake.head.y += 1, 
-            'l' => snake.head.x -= 1,
-            'r' => snake.head.x += 1, 
+            'u' => snake.head_y -= 1, 
+            'd' => snake.head_y += 1, 
+            'l' => snake.head_x -= 1,
+            'r' => snake.head_x += 1, 
             _ => println!("Not possible")
     }
 
     // handle new head location
-    head_x = snake.head.x as usize;
-    head_y = snake.head.y as usize;
+    head_x = snake.head_x as usize;
+    head_y = snake.head_y as usize;
 
     match board[head_x][head_y] {
-        BCell::EmptyCell => board[head_x][head_y] = BCell::Head,
-        BCell::Food => { 
-            board[head_x][head_y] = BCell::FHead;
-            snake.size +=1;
+        None => {
+            board[head_x][head_y] = Option::Some( GS {
+                cell: CellType::Head,
+                direction: snake.direction,
+            });
         },
-        _ => {}
+        Some(gs) => {
+            match gs.cell {
+                CellType::Food => {
+                    board[head_x][head_y] = Option::Some( GS {
+                        cell: CellType::FHead,
+                        direction: snake.direction,
+                    });
+                    // todo: move to another place
+                    // snake.size +=1;
+                },
+                _ => {}
+            }
+        }
     }
 
     // fix tail when size is 1
-    if !snake.tail.next.is_some() {
-        snake.tail.coord = snake.head.clone();
+    if snake.size == 1 {
+        snake.tail_x = snake.head_x;
+        snake.tail_y = snake.head_y;
     } 
     println!("Snake: {:?}", snake);
 } 
@@ -153,10 +170,10 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
     draw.background().color(PLUM);
 
 
-    if snake.head.x < 0
-    || snake.head.x >= _model.columns as i32 
-    || snake.head.y < 0
-    || snake.head.y >= _model.lines as i32 {
+    if snake.head_x < 0
+    || snake.head_x >= _model.columns as i32 
+    || snake.head_y < 0
+    || snake.head_y >= _model.lines as i32 {
         println!("GAME OVER");
     }
 
@@ -166,7 +183,11 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
         for col in 0.._model.columns {
             let x = usize::from_u32(col).unwrap();
             let y = usize::from_u32(line).unwrap();
-            draw_cell(&draw, &cell, &board[x][y]);
+
+            match board[x][y] {
+                None => draw_cell(&draw, &cell, CellType::EmptyCell),
+                Some(gs) => draw_cell(&draw, &cell, gs.cell),
+            }
             if _model.debug {
                 // debug coordiantes
                 draw.text(&format!("{},{}", line, col))
