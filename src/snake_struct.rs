@@ -32,3 +32,47 @@ pub struct GS {
     pub cell: CellType,
     pub direction: char,
 }
+
+impl GS {
+    pub fn head(direction: char) -> Self {
+        GS {
+            cell: CellType::Head,
+            direction,
+        }
+    }
+    
+    pub fn fhead(direction: char) -> Self {
+        GS {
+            cell: CellType::FHead,
+            direction,
+        }
+    }
+    
+    pub fn body(direction: char) -> Self {
+        GS {
+            cell: CellType::Body,
+            direction,
+        }
+    }
+    
+    pub fn fbody(direction: char) -> Self {
+        GS {
+            cell: CellType::FBody,
+            direction,
+        }
+    }
+
+    pub fn tail(direction: char) -> Self {
+        GS {
+            cell: CellType::Tail,
+            direction,
+        }
+    }
+
+    pub fn food(direction: char) -> Self {
+        GS {
+            cell: CellType::Food,
+            direction,
+        }
+    }
+}

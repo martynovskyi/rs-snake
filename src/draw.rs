@@ -49,7 +49,7 @@ fn draw_snake_fhead(draw: &Draw, cell: &Rect) {
 
 fn draw_snake_body(draw: &Draw, cell: &Rect) {
     draw.rect()
-        .color(BLACK)
+        .color(YELLOWGREEN)
         .w(CELL_SIZE - 10.0)
         .h(CELL_SIZE - 10.0)
         .xy(cell.xy());
