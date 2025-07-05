@@ -16,7 +16,7 @@ pub fn draw_cell(draw: &Draw, cell: &Rect, item: CellType) {
         CellType::FHead => draw_snake_fhead(draw, cell),
         CellType::Body => draw_snake_body(draw, cell),
         CellType::FBody => draw_snake_fbody(draw, cell),
-        CellType::Tail => draw_snake_body(draw, cell),
+        CellType::Tail => draw_snake_tail(draw, cell),
         CellType::Food => draw_food(draw, cell),
         CellType::EmptyCell => {} 
     }
@@ -49,7 +49,7 @@ fn draw_snake_fhead(draw: &Draw, cell: &Rect) {
 
 fn draw_snake_body(draw: &Draw, cell: &Rect) {
     draw.rect()
-        .color(YELLOWGREEN)
+        .color(BLACK)
         .w(CELL_SIZE - 10.0)
         .h(CELL_SIZE - 10.0)
         .xy(cell.xy());
@@ -58,6 +58,14 @@ fn draw_snake_body(draw: &Draw, cell: &Rect) {
 fn draw_snake_fbody(draw: &Draw, cell: &Rect) {
     draw.rect()
         .color(RED)
+        .w(CELL_SIZE - 10.0)
+        .h(CELL_SIZE - 10.0)
+        .xy(cell.xy());
+}
+
+fn draw_snake_tail(draw: &Draw, cell: &Rect) {
+    draw.rect()
+        .color(YELLOWGREEN)
         .w(CELL_SIZE - 10.0)
         .h(CELL_SIZE - 10.0)
         .xy(cell.xy());
