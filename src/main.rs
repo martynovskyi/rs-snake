@@ -30,10 +30,10 @@ fn model(_app: &App) -> Model {
         .key_pressed(key_pressed)
         .build()
         .unwrap();
-    const start_x: usize = 24;
-    const start_y: usize = 24;
+    const START_X: usize = 24;
+    const START_Y: usize = 24;
     let mut board = [[Option::<GS>::None; 50]; 50];
-    board[start_x][start_y] = Option::Some(GS::head('u'));
+    board[START_X][START_Y] = Option::Some(GS::head('u'));
 
     place_food(&mut board);
 
@@ -45,10 +45,10 @@ fn model(_app: &App) -> Model {
         snake: Snake {
             ft: _app.time,
             direction: 'u',
-            head_x: start_x as i32,
-            head_y: start_y as i32,
-            tail_x: start_x as i32,
-            tail_y: start_y as i32,
+            head_x: START_X as i32,
+            head_y: START_Y as i32,
+            tail_x: START_X as i32,
+            tail_y: START_Y as i32,
             size: 1,
         },
         debug: false,
@@ -81,19 +81,10 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     let mut head_y = snake.head_y as usize;
     
     let head = board[head_x][head_y].unwrap();
-    let mut grow = false;
     match head.cell {
-        CellType::FHead => {
-            println!("Snake grow");
-            board[head_x][head_y] = Option::Some(GS::fbody(snake.direction));
-            grow = true;
-        },
-        CellType::Head => {
-            println!("Snake grow");
-            board[head_x][head_y] = Option::Some(GS::body(snake.direction));
-            grow = true;
-        },
-        _ => {println!("Head: {:?}", board[head_x][head_y]); }
+        CellType::FHead => board[head_x][head_y] = Option::Some(GS::fbody(snake.direction)),
+        CellType::Head => board[head_x][head_y] = Option::Some(GS::body(snake.direction)),
+        _ => {}
     }
 
     // move head
@@ -113,14 +104,12 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     println!("new head {}:{}", head_x, head_y);
     match board[head_x][head_y] {
         None => board[head_x][head_y] = Option::Some(GS::head(snake.direction)),
-        Some(gs) => {
-            match gs.cell {
-                CellType::Food => {
-                    board[head_x][head_y] = Option::Some(GS::fhead(snake.direction));
-                    snake.size +=1;
-                },
-                _ => {}
-            }
+        Some(gs) => match gs.cell {
+            CellType::Food => {
+                board[head_x][head_y] = Option::Some(GS::fhead(snake.direction));
+                snake.size +=1;
+            },
+            _ => {}
         }
     }
 
@@ -147,32 +136,28 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
         }
         println!("old tail {}:{}-{:?}-{}", tail_x, tail_y, tail.cell, tail.direction);
         
-        let new_tail_cell = board[new_tail_x][new_tail_y].unwrap();
+        let new_tail = board[new_tail_x][new_tail_y].unwrap();
 
-        println!("new tail {}:{}-{:?}-{}", new_tail_x, new_tail_y, new_tail_cell.cell, new_tail_cell.direction);
+        println!("new tail {}:{}-{:?}-{}", new_tail_x, new_tail_y, new_tail.cell, new_tail.direction);
         match tail.cell {
-            CellType::FBody => board[tail_x][tail_y] = Option::Some(GS::tail(new_tail_cell.direction)),
+            CellType::FBody => board[tail_x][tail_y] = Option::Some(GS::tail(new_tail.direction)),
             CellType::FHead => {
-                board[tail_x][tail_y] = Option::Some(GS::fbody(new_tail_cell.direction));
+                board[tail_x][tail_y] = Option::Some(GS::fbody(new_tail.direction));
                 snake.tail_x = tail_x as i32;
                 snake.tail_y = tail_y as i32;
             },
             _ => {
                 println!("Clean tail: {:?}", tail);
                 board[tail_x][tail_y] = Option::None;
+                if new_tail.cell ==  CellType::Body {
+                    board[new_tail_x][new_tail_y] = Option::Some(GS::tail(new_tail.direction));
+                }
                 snake.tail_x = new_tail_x as i32;
                 snake.tail_y = new_tail_y as i32;
-
             }
         }
-        // board[new_tail_x][new_tail_y] = Option::Some(GS::tail(new_tail_cell.direction));
-        // snake.tail_x = new_tail_x as i32;
-        // snake.tail_y = new_tail_y as i32;
-
     } else {
         println!("Tail is missed")
-      // snake.tail_x = snake.head_x;
-      // snake.tail_y = snake.head_y;
     }
     println!("Out: {:?}", snake);
     println!("--------------------------------------------------------------------------------------------");

@@ -10,12 +10,6 @@ pub enum CellType {
     Food,
 }
 
-#[derive(Clone,Debug)]
-pub struct Point {
-    pub x: i32,
-    pub y: i32,
-}
-
 #[derive(Debug)]
 pub struct Snake {
     pub ft: f32,
