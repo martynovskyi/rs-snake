@@ -1,4 +1,5 @@
 use nannou::prelude::*;
+use rand::prelude::*;
 
 mod snake_struct;
 use snake_struct::*;
@@ -41,7 +42,7 @@ fn model(_app: &App) -> Model {
         lines: 50,
         columns: 50,
         step_delay: 0.8,
-        board: board,
+        board,
         snake: Snake {
             ft: _app.time,
             direction: 'u',
@@ -66,16 +67,21 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
 }
 
 fn place_food(board: &mut [[Option<GS>; 50]; 50]){
-    board[24][8] = Option::Some(GS::food('0'));
-    board[24][18] = Option::Some(GS::food('0'));
-    board[28][27] = Option::Some(GS::food('0'));
-    board[28][28] = Option::Some(GS::food('0'));
-    board[28][32] = Option::Some(GS::food('0'));
-    board[28][38] = Option::Some(GS::food('0'));
+    let mut rng = rand::rng();
+    let r1 = rng.random_range(1..50);
+    let r2 = rng.random_range(1..50);
+    println!("Random: {}{}", r1, r2);
+
+    let col = board[r1];
+
+    board[r1][r2] = Option::Some(GS::food('0'));
 }
 
 fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     println!("In: {:?}", snake);
+
+    let mut ate_food = false;
+
     // handle current head location
     let mut head_x = snake.head_x as usize;
     let mut head_y = snake.head_y as usize;
@@ -108,6 +114,7 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
             CellType::Food => {
                 board[head_x][head_y] = Option::Some(GS::fhead(snake.direction));
                 snake.size +=1;
+                ate_food = true;
             },
             _ => {}
         }
@@ -159,6 +166,11 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     } else {
         println!("Tail is missed")
     }
+
+    if ate_food {
+        place_food(board);
+    }
+
     println!("Out: {:?}", snake);
     println!("--------------------------------------------------------------------------------------------");
 } 
