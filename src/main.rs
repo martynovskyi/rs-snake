@@ -118,6 +118,13 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     head_y = snake.head_y as usize;
 
     println!("new head {}:{}", head_x, head_y);
+
+    
+    if head_x >= board.len() 
+    || head_y >= board[0].len() {
+        println!("GAME OVER");
+    }
+
     match board[head_x][head_y] {
         None => board[head_x][head_y] = Option::Some(GS::head(snake.direction)),
         Some(gs) => match gs.cell {
@@ -126,7 +133,9 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
                 snake.size +=1;
                 ate_food = true;
             },
-            _ => {}
+            _ => {
+                println!("GAME OVER");
+            }
         }
     }
 
@@ -163,7 +172,6 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
                 snake.tail_y = tail_y as i32;
             },
             _ => {
-                println!("Clean tail: {:?}", tail);
                 board[tail_x][tail_y] = Option::None;
                 if new_tail.cell ==  CellType::Body {
                     board[new_tail_x][new_tail_y] = Option::Some(GS::tail(new_tail.direction));
@@ -192,12 +200,6 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
     draw.background().color(PLUM);
 
 
-    if snake.head_x < 0
-    || snake.head_x >= _model.columns as i32 
-    || snake.head_y < 0
-    || snake.head_y >= _model.lines as i32 {
-        println!("GAME OVER");
-    }
 
     let mut cell = Rect::from_w_h(CELL_SIZE, CELL_SIZE).top_left_of(wr);
     let mut head = cell;
