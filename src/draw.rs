@@ -70,3 +70,10 @@ fn draw_snake_tail(draw: &Draw, cell: &Rect) {
         .h(CELL_SIZE - 10.0)
         .xy(cell.xy());
 }
+
+pub fn draw_coordinates(draw: &Draw, line: u32, col: u32, cell: &Rect) {
+    draw.text(&format!("{},{}", line, col))
+                    .color(BLACK)
+                    .font_size(8)
+                    .xy(cell.xy());
+}

@@ -6,6 +6,7 @@ use snake_struct::*;
 
 mod draw;
 use draw::draw_cell;
+use draw::draw_coordinates;
 use draw::CELL_SIZE;
 
 struct Model {
@@ -81,7 +82,7 @@ fn place_food(board: &mut [[Option<GS>; 50]; 50]) {
     loop {
         let x = rng.random_range(1..50);
         let y = rng.random_range(1..50);
-        println!("Random: {}:{}", x, y);
+        println!("Random food: {}:{}", x, y);
 
         if board[x][y].is_none() {
             board[x][y] = Option::Some(GS::food('0'));
@@ -211,8 +212,8 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
     let mut head = cell;
     for line in 0.._model.lines {
         for col in 0.._model.columns {
-            let x = usize::from_u32(col).unwrap();
-            let y = usize::from_u32(line).unwrap();
+            let x = col as usize;
+            let y = line as usize;
 
             match board[x][y] {
                 None => draw_cell(&draw, &cell, CellType::EmptyCell),
@@ -220,12 +221,8 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
             }
             if _model.debug {
                 // debug coordiantes
-                draw.text(&format!("{},{}", line, col))
-                    .color(BLACK)
-                    .font_size(8)
-                    .xy(cell.xy());
+                draw_coordinates(&draw, line, col, &cell); 
             }
-        
             if col == _model.columns - 1 {
                cell = head.below(head);
             } else {
@@ -283,5 +280,4 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
         }
         _other_key => {}
     }
-    println!("{}: {:?} -> {:?}", app.time, key, model.snake); 
 }
