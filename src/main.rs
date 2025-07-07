@@ -15,6 +15,7 @@ struct Model {
     pub board: [[Option<GS>; 50]; 50], 
     pub snake: Snake,
     pub debug: bool,
+    pub is_game_over: bool,
 }
 
 fn main() {
@@ -60,6 +61,7 @@ fn model(_app: &App) -> Model {
             size: 1,
         },
         debug: false,
+        is_game_over: false,
     }
 }
 
@@ -67,8 +69,9 @@ fn event(_app: &App, _model: &mut Model, _e: Event) {
     let snake = &mut _model.snake;
     let board = &mut _model.board;
    
-    if (_app.time - snake.ft) > _model.step_delay {
-        move_snake(snake, board);
+    if (_app.time - snake.ft) > _model.step_delay 
+    && !_model.is_game_over {
+        _model.is_game_over = move_snake(snake, board);
         snake.ft = _app.time;
     }
 }
@@ -87,7 +90,7 @@ fn place_food(board: &mut [[Option<GS>; 50]; 50]) {
     }
 }
 
-fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
+fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) -> bool {
     println!("In: {:?}", snake);
 
     let mut ate_food = false;
@@ -122,7 +125,7 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
     
     if head_x >= board.len() 
     || head_y >= board[0].len() {
-        println!("GAME OVER");
+        return true;
     }
 
     match board[head_x][head_y] {
@@ -134,7 +137,7 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
                 ate_food = true;
             },
             _ => {
-                println!("GAME OVER");
+                return true;
             }
         }
     }
@@ -190,12 +193,15 @@ fn move_snake(snake: &mut Snake, board: &mut [[Option<GS>; 50]; 50]) {
 
     println!("Out: {:?}", snake);
     println!("--------------------------------------------------------------------------------------------");
+    return false;
 } 
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
+    if _model.is_game_over {
+        return;
+    }
     let draw = _app.draw();
     let wr = _app.window_rect();
-    let snake = &_model.snake;
     let board = &_model.board;
     draw.background().color(PLUM);
 
@@ -232,13 +238,16 @@ fn view(_app: &App, _model: &Model, _frame: Frame) {
 }
 
 fn key_pressed(app: &App, model: &mut Model, key: Key) {
+    if model.is_game_over {
+        return;
+    }
     match key {
         Key::O => {
             model.debug = !model.debug;
         }
         Key::Up | Key::W => {
             if model.snake.direction == 'u' {
-                move_snake(&mut model.snake, &mut model.board);
+                model.is_game_over = move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'd' {
@@ -247,7 +256,7 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
         }
         Key::Down | Key::S => { 
             if model.snake.direction == 'd' {
-                move_snake(&mut model.snake, &mut model.board);
+                model.is_game_over = move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'u' {
@@ -256,7 +265,7 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
         }
         Key::Right | Key::D => {
             if model.snake.direction == 'r' {
-                move_snake(&mut model.snake, &mut model.board);
+                model.is_game_over = move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'l' {
@@ -265,7 +274,7 @@ fn key_pressed(app: &App, model: &mut Model, key: Key) {
         }
         Key::Left | Key::A => {
             if model.snake.direction == 'l' {
-                move_snake(&mut model.snake, &mut model.board);
+                model.is_game_over = move_snake(&mut model.snake, &mut model.board);
                 model.snake.ft = app.time;
             }
             if model.snake.direction != 'r' {
